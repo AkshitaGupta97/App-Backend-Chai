@@ -4,12 +4,21 @@ import dotenv from "dotenv";
 
 //import mongoose from "mongoose";
 //import { DB_NAME } from "./constant";
+
 import connectDB from "./DB/databse.js";
 
 dotenv.config({
     path: "/.env"
 })
-connectDB();
+connectDB()
+.then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server is running at port : ${process.env.PORT}`)
+    })
+})
+.catch((err) => {
+    console.log("MongoDb connection failed !!", err)
+})
 
 
 /*
