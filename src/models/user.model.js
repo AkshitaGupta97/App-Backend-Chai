@@ -49,7 +49,6 @@ const userSchema = new Schema(
     },
     {timestamps: true}
 )
-
 /* 
     here we are using pre middleware, which is used befor "save", 
     here normal function is used instead of arrow because arrow function doesnot have "this" property.
@@ -61,14 +60,12 @@ userSchema.pre("save", async function(next){
     this.password = await bcrypt.hash(this.password, 6);  // - If the password is new/modified, hash it using bcrypt with a salt round of 10.
     next() //Continue with the save operation.
 })
-
 /*
 - Purpose: Checks if a given password matches the stored hashed password.
 */
 userSchema.methods.isPasswordCorrect = async function(password){
     return await bcrypt.compare(password, this.password)  // Compares the plain text password entered by the user with the hashed password in the database.
 }
-
 /*
 - Purpose: Creates a JWT access token for the user.
 👉 Access tokens are short-lived and used to authenticate API requests
@@ -87,7 +84,6 @@ userSchema.methods.generateAccessToken = function(){
         }
     )
 }
-
 userSchema.methods.generateRefreshToken = function(){
     return jwt.sign(
         {
@@ -99,5 +95,4 @@ userSchema.methods.generateRefreshToken = function(){
         }
     )
 }
-
 export const User = mongoose.model("User", userSchema);
