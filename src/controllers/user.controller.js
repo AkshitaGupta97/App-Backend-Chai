@@ -15,7 +15,7 @@ const registerUser = asyncHandler( async (req, res) => {
       throw new ApiError(400, "All fields are required")
    }
    //3.check if user already exist by username or email
-   const existedUser = User.findOne({
+   const existedUser = await User.findOne({
       $or: [{ username }, { email }]
    })
    if(existedUser){  // if user is existed then throw error.
@@ -23,10 +23,10 @@ const registerUser = asyncHandler( async (req, res) => {
    }
    // 4. check for images, check for avatar
    //req.files is accessed by multer.
-   const avatarLocalPath = req.files?.avatar[0]?.path;
-   const coverImageLocalPath = req.files?.coverImage[0]?.path;
+   const avatarLocalPath = req.files?.avatar?.[0]?.path;
+   const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
    console.log("Files path by multer", req.files)
-
+   
    if(!avatarLocalPath){
       throw new ApiError(400, "Avatar file is required");
    }
@@ -62,10 +62,9 @@ const registerUser = asyncHandler( async (req, res) => {
       new ApiResponse(200, createdUser, "user registered successfully")
    )
 })
-
 export {registerUser}
 
-/* steps
+/* steps for user registration
  1.get user detail from frontend
  2. validation - not empty
  3. check if user already exist by username or email
