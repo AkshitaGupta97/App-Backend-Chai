@@ -62,7 +62,93 @@ const registerUser = asyncHandler( async (req, res) => {
       new ApiResponse(200, createdUser, "user registered successfully")
    )
 })
-export {registerUser}
+
+
+//5. access and refresh token from loginUser
+const generateAccessAndRefreshToken = async(userId) => {
+   try {
+      // 1. Find the user by their ID in the database
+      const user = await User.findById(userId);
+      // 2. Generate a new access and refresh token using a method defined on the user model
+      const accessToken = user.generateAccessToken();
+      const refreshToken = user.generateRefreshToken();
+      // 4. Save the refresh token in the user's record
+      user.refreshToken = refreshToken
+      await user.save({validateBeforeSave: false}); //Saves the updated user document without running schema validations
+      // 5. Return both tokens so they can be sent to the client
+      return {accessToken, refreshToken}
+   } catch (error) {
+      throw new ApiError(500, "Something went wrong while generating refresh and access token")
+   }
+}
+
+const loginUser = asyncHandler( async(req, res) => {
+   //1.  Extract login data from request body
+   const {email, username, password} = req.body;
+   //2. username, email
+   if(!username || !email){
+      throw new ApiError(400, "username or password is required");
+   }
+   // 3.find the user
+   const user = await User.findOne({
+      $or:[{username}, {email}]
+   })
+   // check whether user exist
+   if(!user){
+      throw new ApiError(404, "User does not exist")
+   }
+   // 4.password check
+   const isPasswordValid = await user.isPasswordCorrect(password)
+   if(!isPasswordValid){
+      throw new ApiError(404, "Invalid password")
+   }
+   // access and refresh token
+   const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
+   //Fetch user details again, excluding sensitive fields
+   const loggedInUser = await User.findById(user._id).select((
+      "-password -refreshToken"
+   ))
+   // 6. send cookies  (httpOnly & secure for safety)
+   const options = {
+      httpOnly: true, // prevents client-side JS from accessing cookies
+      secure: true     // ensures cookies are sent only over HTTPS
+   }
+   //Send response with cookies + JSON payload
+   return res.status(200)
+   .cookie("accessToken", accessToken, options)
+   .cookie("refreshToken", refreshToken, options)
+   .json(
+      new ApiResponse(
+         200, { user: loggedInUser, accessToken, refreshToken}, 
+         "User Logged in successfully"
+      )
+   )
+})
+
+const logOutUser = asyncHandler( async (req, res) => {
+   await User.findByIdAndUpdate(
+      req.user._id ,     // now you are able to access req.user from auth.middleware as req.user = user
+      {
+         $set: {
+            refreshToken: undefined
+         }
+      },
+      {
+         new: true // means the updated user document would be returned
+      }
+   )  
+   const options = {
+      httpOnly: true,
+      secure: true
+   }
+   return res.status(200)
+   .clearCookie("accessToken", options)
+   .clearCookie("refreshToken", options)
+   .json(new ApiResponse(200, {}, "User logged Out"))
+})
+
+
+export {registerUser, loginUser, logOutUser}
 
 /* steps for user registration
  1.get user detail from frontend
@@ -74,4 +160,12 @@ export {registerUser}
  7. remove password and refreshToken from response
  8. check for user creation, either null or success
  9. return response
+ */
+/* steps for loginUser
+   1. req body -> data
+   2. username, email
+   3. find the user
+   4. password check
+   5. access and refresh token
+   6. send cookies
  */

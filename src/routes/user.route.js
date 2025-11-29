@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { registerUser } from "../controllers/user.controller.js";
+import { loginUser, logOutUser, registerUser } from "../controllers/user.controller.js";
 import { upload } from "../middleware/multer.middleware.js"; 
+import { verifyJWT } from "../middleware/auth.middleware.js";
 
 const router = Router();  //Creates a new router object to define routes
 router.route("/register").post(  //- Sets up a POST endpoint at /register
@@ -16,4 +17,10 @@ router.route("/register").post(  //- Sets up a POST endpoint at /register
     ]),
     registerUser // After Multer processes the files, control passes to the (registerUser) 
 )
+
+router.route("/login").post(loginUser);
+
+// secured route 
+router.route("/logout").post(verifyJWT, logOutUser)
+
 export default router;
