@@ -1,4 +1,3 @@
-
 /*
 - This creates a custom error class called ApiError that inherits from JavaScript’s built‑in Error class.
 → It allows you to throw errors with extra metadata useful for APIs.
