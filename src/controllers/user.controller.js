@@ -409,6 +409,7 @@ export {
    updateUserAvatar,
    updateUserCoverImage,
    getUserChannelProfile,
+   getWatchHistory
 }
 
 /* steps for user registration
