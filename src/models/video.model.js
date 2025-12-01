@@ -37,7 +37,7 @@ const videoSchema = new Schema(
 
 videoSchema.plugin(mongooseAggregatePaginate) 
 /*- This line enhances your schema with a new method:
-Model.aggregatePaginate()*/
+Model.aggregatePaginate()*/0
 
 export const Video = mongoose.model("Video", videoSchema)
 
