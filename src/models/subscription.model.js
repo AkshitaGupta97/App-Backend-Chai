@@ -12,3 +12,4 @@ const subscriptionSchema = new Schema({
 })
 
 export const Subscription = mongoose.model("Subscription", subscriptionSchema)
+// Subscription will go in user.controller pipeline as "subscriptions"
